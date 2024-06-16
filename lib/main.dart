@@ -10,18 +10,23 @@ import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/flame.dart';
-import 'package:go_router/go_router.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'projectile.dart';
 import 'dart:async' as asyncer;
-import 'package:path/path.dart';
+
 
 
 class GamePage extends StatelessWidget {
+  const GamePage({super.key});
+
   @override
   Widget build(BuildContext context) {
+
+
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
     return GameWidget(
-      game: BowGame()  // Wrap BowGame with a widget
+      game: BowGame(width, height)  // Wrap BowGame with a widget
     );
   }
 }
@@ -32,6 +37,13 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   int score = 0;
   late Bow bow;
   int hp = 3;
+  double width = 800;
+  double height = 600;
+  
+  BowGame(double width, double height) {
+    this.width = width;
+    this.height = height;
+  }
 
 
   Future<void> insertRecord(HighScore highscore) async {
@@ -43,7 +55,7 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    camera.viewport = FixedResolutionViewport(resolution: Vector2(800, 600));
+    camera.viewport = FixedResolutionViewport(resolution: Vector2(this.width, this.height));
     add(Background());
     bow = Bow();
     add(bow);
@@ -66,11 +78,12 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   void hpDown() async{
     hp--;
     if (hp <= 0) {
+      add(LoseScreen());
       pauseEngine();
+      await Future.delayed(Duration(seconds:1));
       await insertRecord(HighScore(dateTime: DateTime.now(), score: score));
-      theRouter.go('/home');
+      gameRouter.go('/home');
     }
-      // pauseEngine();
     
     scoreComponent.display(score, hp);
   }
@@ -102,7 +115,7 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
   }
 
   Vector2 calculateVelocity(double angle) {
-    // Convert angle to radians
+
     final radianAngle = angle * pi / 180;
     final velocity = Vector2(cos(radianAngle), -sin(radianAngle)) * 300;
     return velocity;
@@ -112,17 +125,6 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
     final direction = (newPosition - position).normalized();
     _lastAngle = direction.angleTo(Vector2(1, 0)) * 180 / pi;
   }
-
-  // @override
-  // void onTapUp(TapUpEvent event) {
-  //   final touchPosition = event.localPosition;
-  //   final direction = (touchPosition - position).normalized();
-  //   final angle = direction.angleTo(Vector2(1, 0)) * 180 / pi;
-
-  //   if (angle.abs() <= 45) {
-  //     shoot(angle: angle);
-  //   }
-  // }
 
     @override
   void onTapUp(TapUpEvent event) {
@@ -138,28 +140,6 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
   }
 }
 
-// class Projectile extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame> {
-//   Projectile(Vector2 position)
-//       : super(
-//           size: Vector2(10, 30),
-//           position: position,
-//         );
-
-//   @override
-//   Future<void> onLoad() async {
-//     sprite = await Sprite.load('projectile.png');
-//     add(RectangleHitbox()..collisionType = CollisionType.passive);
-//   }
-
-//   @override
-//   void update(double dt) {
-//     super.update(dt);
-//     position.y += 225 * dt;
-//     if (position.y < 0) {
-//       removeFromParent();
-//     }
-//   }
-// }
 
 class Enemy extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame>  {
   late ShapeHitbox hitbox;

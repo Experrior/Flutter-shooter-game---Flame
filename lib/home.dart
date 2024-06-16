@@ -1,32 +1,26 @@
-import 'package:archerer/main.dart';
 import 'package:archerer/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:archerer/db_helper.dart';
 
-void main() => runApp(MyApp());
-
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     WidgetsFlutterBinding.ensureInitialized();
     return MaterialApp.router(
-      routerConfig: theRouter,
+      routerConfig: gameRouter,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
     );
   }
-
-
-
 }
 
-
-
 class HighScore {
-
-
-
   final DateTime dateTime;
   final int score;
 
@@ -35,14 +29,14 @@ class HighScore {
     required this.score,
   });
 
-  @override
-    Map<String, Object?> toMap() {
+  Map<String, Object?> toMap() {
     return {
       'dateTime': dateTime.toString(),
       'score': score,
     };
   }
-    @override
+
+  @override
   String toString() {
     return 'HighScore{dateTime: $dateTime, score: $score}';
   }
@@ -55,27 +49,53 @@ class HighScore {
   }
 }
 
-
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Game Home Page'),
+        title: const Text('The Archerer game'),
       ),
       body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(onPressed: () {context.push('/game');}, child: Text('Start Game'),),
-            ElevatedButton(onPressed: () {context.push('/scores');}, child: Text('Check records'),),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Quo vadis?',
+                style: Theme.of(context).textTheme.headlineMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  context.push('/game');
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                child: const Text('Start Game'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  context.push('/scores');
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                child: const Text('Check Records'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
