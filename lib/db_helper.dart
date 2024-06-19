@@ -48,7 +48,8 @@ class DatabaseHelper {
 
   Future<List<HighScore>> getHighScores() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('highscores');
+    final List<Map<String, dynamic>> maps = await db.query('highscores',
+    orderBy: 'score DESC');
     return List.generate(maps.length, (i) {
       return HighScore.fromMap(maps[i]);
     });

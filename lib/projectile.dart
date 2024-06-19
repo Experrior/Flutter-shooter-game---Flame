@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 
@@ -6,12 +8,14 @@ import 'main.dart';
 class Projectile extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame> {
 
   late ShapeHitbox hitbox;
-  
+  final double radianAngle;
   final Vector2 velocity;
-  Projectile(Vector2 position, this.velocity)
+  Projectile(Vector2 position, this.velocity, this.radianAngle)
       : super(
-          size: Vector2(30, 10),
+          size: Vector2(25, 75),
           position: position,
+          anchor: Anchor.bottomLeft,
+          angle: pi/2 - radianAngle*pi/180
         );
 
   @override
@@ -23,8 +27,9 @@ class Projectile extends SpriteComponent with CollisionCallbacks, HasGameRef<Bow
      );
       // ..renderShape = true;
     add(hitbox);
-    sprite = await Sprite.load('projectile.png');
-
+    sprite = await Sprite.load('poison_arrow.webp');
+    // angle = radianAngle;
+    
   }
 
  @override

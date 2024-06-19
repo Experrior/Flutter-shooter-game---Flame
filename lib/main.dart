@@ -55,12 +55,12 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    camera.viewport = FixedResolutionViewport(resolution: Vector2(this.width, this.height));
+    camera.viewport = FixedResolutionViewport(resolution: Vector2(width, height));
     add(Background());
-    bow = Bow();
+    bow = Bow(width, height);
     add(bow);
-    add(EnemySpawner());
-    debugMode= true;
+    add(EnemySpawner(height));
+    debugMode= false;
     scoreComponent = ScoreComponent();
     add(scoreComponent);
   }
@@ -90,18 +90,18 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
  
 }
 class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
-  Bow()
+  Bow(double width, double height)
       : super(
           size: Vector2(100, 50),
-          position: Vector2(400, 400),
+          position: Vector2(width/2 - 50, height-30),
         );
 
   late asyncer.Timer _shootTimer;
   double _lastAngle = 0;
   @override
   Future<void> onLoad() async {
-    sprite = await Sprite.load('bow.png');
-    _shootTimer = asyncer.Timer.periodic(const Duration(seconds: 1), (shootTimer) {
+    sprite = await Sprite.load('new_bow.png');
+    _shootTimer = asyncer.Timer.periodic(const Duration(milliseconds: 850), (shootTimer) {
       shoot();
     });
   }
@@ -109,15 +109,15 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
   void shoot() {
     final projectile = Projectile(
       position.clone() + Vector2(40, -30),
-      calculateVelocity(_lastAngle),
+      calculateVelocity(_lastAngle), _lastAngle
     );
     game.add(projectile);
+
   }
 
   Vector2 calculateVelocity(double angle) {
-
     final radianAngle = angle * pi / 180;
-    final velocity = Vector2(cos(radianAngle), -sin(radianAngle)) * 300;
+    final velocity = Vector2(cos(radianAngle), -sin(radianAngle)) * 475;
     return velocity;
   }
 
@@ -143,16 +143,19 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
 
 class Enemy extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame>  {
   late ShapeHitbox hitbox;
+  late double heightLimit;
 
   
-  Enemy(Vector2 position)
+  Enemy(Vector2 position, this.heightLimit)
       : super(
           size: Vector2(60, 50),
           position: position,
+
         );
 
   @override
   Future<void> onLoad() async {
+    
     sprite = await Sprite.load('enemy.png');
          hitbox = RectangleHitbox(
                 collisionType: CollisionType.active
@@ -163,8 +166,8 @@ class Enemy extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame>
   @override
   void update(double dt) {
     super.update(dt);
-    position.y+= 100 * dt;
-    if (position.y > 600) {
+    position.y+= 75 * dt;
+    if (position.y > heightLimit) {
       removeFromParent();
       gameRef.hpDown();
     }
@@ -181,20 +184,31 @@ class Enemy extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame>
 }
 
 class EnemySpawner extends Component with HasGameRef<BowGame> {
+  late double heightLimit;
+  EnemySpawner(double heightLimit)
+  {
+    this.heightLimit = heightLimit;
+  }
+  
+
   @override
   void onMount() {
     super.onMount();
+    manageTimer();
+  }
+
+  void manageTimer() {
     gameRef.add(TimerComponent(
-      period: 1,
-      repeat: true,
-      onTick: () {
-        final enemy = Enemy(Vector2(
-          gameRef.size.x * (0.1 + 0.8 * Random().nextDouble()),
-          0,
-        ));
-        gameRef.add(enemy);
-      },
-    ));
+    period: 100,
+    repeat: true,
+    onTick: () {
+      final enemy = Enemy(Vector2(
+        gameRef.size.x * (0.1 + 0.8 * Random().nextDouble()),0),
+        this.heightLimit,
+      );
+      gameRef.add(enemy);
+      },)
+    );
   }
 }
 
@@ -203,7 +217,7 @@ class Background extends SpriteComponent with HasGameRef<BowGame> {
 
   @override
   Future<void> onLoad() async {
-    final background = await Flame.images.load("background.png");
+    final background = await Flame.images.load("background_new.jpg");
     size = gameRef.size;
     sprite = Sprite(background);
   }
