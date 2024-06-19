@@ -82,7 +82,43 @@ class _HighScoreListPageState extends State<HighScoreListPage> {
     super.initState();
     WidgetsFlutterBinding.ensureInitialized();
     databaseFactory = databaseFactoryFfi;
-    _highScores = DatabaseHelper().getHighScores();
+    setState(() {
+      _highScores = DatabaseHelper().getHighScores();
+    });
+  }
+
+  Future<void> _clearHighScores() async {
+    await DatabaseHelper().clearHighScores();
+    setState(() {
+      _highScores = DatabaseHelper().getHighScores();
+  });
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete all high scores?\n This action is permanent and cannot be reversed!'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _clearHighScores();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -90,6 +126,16 @@ class _HighScoreListPageState extends State<HighScoreListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('High Scores'),
+         actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            onPressed: _showConfirmationDialog,
+            tooltip: 'Clear All Scores',
+            color: const Color.fromARGB(200, 240, 20, 20),
+            iconSize: 40,
+          ),
+          Container(width: 20.0,)
+        ],
       ),
       body: FutureBuilder<List<HighScore>>(
         future: _highScores,

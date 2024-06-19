@@ -39,6 +39,11 @@ class DatabaseHelper {
     ''');
   }
 
+  Future<void> clearHighScores() async {
+    final db = await database;
+    await db.delete('highscores');
+  }
+
  
   Future<Database?> getDatabase() async {
     if (_database != null) return _database;
