@@ -1,5 +1,5 @@
 import 'package:path/path.dart';
-import 'package:archerer/home.dart'; // Import the HighScore model
+import 'package:archerer/home.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {

@@ -1,41 +1,58 @@
-// import 'dart:async';
-// import 'package:archerer/main.dart';
-// import 'package:flame/collisions.dart';
-// import 'package:flame/components.dart';
+import 'dart:math';
+import 'package:flame/events.dart';
+import 'package:flame/components.dart';
+import 'projectile.dart';
+import 'dart:async' as asyncer;
+import 'package:archerer/main.dart';
 
-// import 'package:flame/events.dart';
+class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
+  Bow(double width, double height)
+      : super(
+          size: Vector2(200, 100),
+          position: Vector2(width/2 - 100, height-75),
+        );
 
-// class Bow extends SpriteComponent with CollisionCallbacks, TapCallbacks, HasGameRef<BowGame> {
+  late asyncer.Timer _shootTimer;
+  double _lastAngle = 0;
+  @override
+  Future<void> onLoad() async {
+    sprite = await Sprite.load('new_bow.png');
+    _shootTimer = asyncer.Timer.periodic(const Duration(milliseconds: 850), (shootTimer) {
+      shoot();
+    });
+  }
 
-  
-//   Bow()
-//       : super(
-//           size: Vector2(100, 50),
-//           position: Vector2(350, 550),
-//         );
+  void shoot() {
+    final projectile = Projectile(
+      position.clone() + Vector2(85, -10),
+      calculateVelocity(_lastAngle), _lastAngle
+    );
+    game.add(projectile);
 
-//   late Timer _shootTimer;
+  }
 
-//   @override
-//   Future<void> onLoad() async {
-//     sprite = await Sprite.load('bow.png');
-//     add(RectangleHitbox()..collisionType = CollisionType.passive);
+  Vector2 calculateVelocity(double angle) {
+    final radianAngle = angle * pi / 180;
+    final velocity = Vector2(cos(radianAngle), -sin(radianAngle)) * 475;
+    return velocity;
+  }
 
-//     // Initialize and start the timer to shoot every 1 second
-//     Timer timer1 = Timer(1.0,);
-//     timer1.onTick = () {
-//         shoot();
-//       };
-//   }
+  void updateAngle(Vector2 newPosition) {
+    final direction = (newPosition - position).normalized();
+    _lastAngle = direction.angleTo(Vector2(1, 0)) * 180 / pi;
+  }
 
-//   @override
-//   void update(double dt) {
-//     super.update(dt);
-//     // No need to manually update the timer since Timer.periodic handles it
-//   }
+    @override
+  void onTapUp(TapUpEvent event) {
+    final touchPosition = event.localPosition;
+    final direction = (touchPosition - position).normalized();
+    _lastAngle = direction.angleTo(Vector2(1, 0)) * 180 / pi;
+  }
+      @override
+  void onTapDown(TapDownEvent event) {
+    final touchPosition = event.localPosition;
+    final direction = (touchPosition - position).normalized();
+    _lastAngle = direction.angleTo(Vector2(1, 0)) * 180 / pi;
+  }
+}
 
-//   void shoot() {
-//     final projectile = Projectile(position.clone() + Vector2(45, -30));
-//     game.add(projectile);
-//   }
-// }

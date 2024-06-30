@@ -2,7 +2,9 @@ import 'package:archerer/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-void main() => runApp(const MaterialApp( home: MyApp()));
+void main() => runApp(const MaterialApp(
+   home: MyApp(),
+  debugShowCheckedModeBanner: false ));
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
