@@ -33,4 +33,13 @@
 Please feel free to use it as example, and learning reference for your own projects :thumbsup:
 
 
+Example screenshots:
+
+![](Screenshot_20240630_152711.png)
+
+![](Screenshot_20240630_152858.png)
+
+
+
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
