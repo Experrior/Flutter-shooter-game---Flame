@@ -9,19 +9,19 @@ final gameRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => HomePage(),
+      builder: (context, state) => const HomePage(),
     ),
       GoRoute(
       path: '/home',
-      builder: (context, state) => HomePage(),
+      builder: (context, state) => const HomePage(),
     ),
     GoRoute(
       path: '/game',
-      builder: (context, state) => GamePage(),
+      builder: (context, state) => const GamePage(),
     ),
     GoRoute(
       path: '/scores',
-      builder: (context, state) => HighScoreListPage(),
+      builder: (context, state) => const HighScoreListPage(),
     ),
   ],
 );

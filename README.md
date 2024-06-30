@@ -1,16 +1,36 @@
-# archerer
+# Archerer
 
-A new Flutter project.
+[![](lockup_flutter_horizontal_wht.png)](https://flutter.dev/)
 
-## Getting Started
+## Flutter shooter game, using Flame game engine.
 
-This project is a starting point for a Flutter application.
+[![](image.png)](https://docs.flame-engine.org/latest/)
 
-A few resources to get you started if this is your first Flutter project:
+### Using:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- #### local sqlite database
+- ####  routing (using GoRouter)
+- ####  animations
+- ####  playing music in the background
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+
+
+### Assets used:
+
+- The assets for spider were created by:
+    https://www.reddit.com/user/Admurin/
+
+- The arrow asset is from Terraria 
+    https://www.terraria.org/
+
+- The bow asset is from
+    Skyrim
+
+- The music is from:
+    https://pixabay.com/music/world-desert-voices-11468/
+
+Please feel free to use it as example, and learning reference for your own projects :thumbsup:
+
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

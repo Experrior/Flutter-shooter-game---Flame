@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:archerer/db_helper.dart';
+import 'package:archerer/enemy.dart';
 import 'package:archerer/home.dart';
 import 'package:archerer/loseScreen.dart';
 import 'package:archerer/router.dart';
@@ -9,11 +10,10 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
 import 'package:flame/flame.dart';
 import 'projectile.dart';
 import 'dart:async' as asyncer;
-
+import 'package:audioplayers/audioplayers.dart';
 
 
 class GamePage extends StatelessWidget {
@@ -41,7 +41,7 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   int hp = 3;
   late double width;
   late double height;
-  
+  late AudioPlayer audioPlayer;
   BowGame(this.width, this.height);
 
 
@@ -63,6 +63,9 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
     debugMode= false;
     scoreComponent = ScoreComponent();
     add(scoreComponent);
+
+    audioPlayer = AudioPlayer();
+    audioPlayer.play(AssetSource('audio/desert-voices-11468.mp3'), volume: .25);
   }
 
       @override
@@ -73,29 +76,41 @@ class BowGame extends FlameGame with TapCallbacks, HasCollisionDetection, DragCa
   void increaseScore() {
     score++;
     scoreComponent.display(score, hp);
+     if (score % 10 == 0) {
+      // showLevelUpPopup();
+      hp += 1;
+    }
   }
 
   void hpDown() async{
     hp--;
     if (hp <= 0) {
-      // 
-      await add(LoseScreenComponent(score, Vector2(width, height)));
+      audioPlayer.stop();
       remove(enemySpawner);
-      await Future.delayed(Duration(seconds:1));
+      remove(bow);
+      await add(LoseScreenComponent(score, Vector2(width, height)));
+      await Future.delayed(const Duration(seconds:1)); // added delay here, becuase otherwise LoseScreen didn't have time to load
       pauseEngine();
       await insertRecord(HighScore(dateTime: DateTime.now(), score: score));
-      await Future.delayed(Duration(seconds:2));
+      await Future.delayed(const Duration(seconds:2));
       gameRouter.go('/home');
     }
     scoreComponent.display(score, hp);
   }
+
+  // void showLevelUpPopup() async {
+  //   final popup = LevelUpPopup();
+  //   add(popup);
+  //   await Future.delayed(const Duration(seconds: 2));
+  //   remove(popup);
+  // }
  
 }
 class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
   Bow(double width, double height)
       : super(
-          size: Vector2(100, 50),
-          position: Vector2(width/2 - 50, height-30),
+          size: Vector2(200, 100),
+          position: Vector2(width/2 - 100, height-75),
         );
 
   late asyncer.Timer _shootTimer;
@@ -110,7 +125,7 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
 
   void shoot() {
     final projectile = Projectile(
-      position.clone() + Vector2(40, -30),
+      position.clone() + Vector2(85, -10),
       calculateVelocity(_lastAngle), _lastAngle
     );
     game.add(projectile);
@@ -143,49 +158,6 @@ class Bow extends SpriteComponent with TapCallbacks, HasGameRef<BowGame> {
 }
 
 
-class Enemy extends SpriteComponent with CollisionCallbacks, HasGameRef<BowGame>  {
-  late ShapeHitbox hitbox;
-  late double heightLimit;
-
-  
-  Enemy(Vector2 position, this.heightLimit)
-      : super(
-          size: Vector2(60, 50),
-          position: position,
-
-        );
-
-  @override
-  Future<void> onLoad() async {
-    // await Flame.images.load('output-onlinegiftools.gif');
-    // Image image = await Image.asset('output-onlinegiftools.gif');
-    sprite = await Sprite.load('output-onlinegiftools.gif');
-    hitbox = RectangleHitbox(
-          collisionType: CollisionType.active
-    );
-    add(hitbox);
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    position.y+= 250 * dt;
-    if (position.y > heightLimit) {
-      removeFromParent();
-      gameRef.hpDown();
-    }
-  }
-
-    @override
-  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollisionStart(intersectionPoints, other);
-      other.removeFromParent();
-      removeFromParent();
-      gameRef.increaseScore();
-    
-  }
-}
-
 class EnemySpawner extends Component with HasGameRef<BowGame> {
   late double heightLimit;
   EnemySpawner(double heightLimit)
@@ -207,7 +179,7 @@ class EnemySpawner extends Component with HasGameRef<BowGame> {
     onTick: () {
       final enemy = Enemy(Vector2(
         gameRef.size.x * (0.1 + 0.8 * Random().nextDouble()),0),
-        this.heightLimit,
+        heightLimit,
       );
       gameRef.add(enemy);
       },)
@@ -220,32 +192,97 @@ class Background extends SpriteComponent with HasGameRef<BowGame> {
 
   @override
   Future<void> onLoad() async {
-    final background = await Flame.images.load("background_new.jpg");
+    final background = await Flame.images.load("background_new2.jpg");
     size = gameRef.size;
     sprite = Sprite(background);
   }
 }
 
-class ScoreComponent extends TextComponent with HasGameRef<BowGame> {
+// class ScoreComponent extends TextComponent with HasGameRef<BowGame> {
+//   int score = 0;
+//   int hp = 3;
+//   ScoreComponent()
+//       : super(
+//           text: 'Score: 0\n Hp: 3',
+//           position: Vector2(10, 10),
+//           textRenderer: TextPaint(
+//             style: const TextStyle(
+//               color: Colors.white,
+//               fontSize: 24,
+//             ),
+//           ),
+//         );
+
+//   void display(int score, int hp) {
+//     text = 'Score: $score\nHp: $hp';
+//   }
+  
+// }
+
+class ScoreComponent extends PositionComponent with HasGameRef<BowGame> {
   int score = 0;
   int hp = 3;
-  ScoreComponent()
-      : super(
-          text: 'Score: 0\n Hp: 3',
-          position: Vector2(10, 10),
-          textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-            ),
-          ),
-        );
+  late TextComponent scoreText;
+  List<SpriteComponent> hearts = [];
 
-  void display(int score, int hp) {
-    text = 'Score: $score\nHp: $hp';
+  ScoreComponent()
+      : super(position: Vector2(10, 10));
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+
+    // Initialize score text
+    scoreText = TextComponent(
+      text: 'Score: 0',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+        ),
+      ),
+    );
+    add(scoreText);
+
+    // Load heart image and create heart components
+    final heartSprite = await gameRef.loadSprite('hp heart.png');
+    for (int i = 0; i < hp; i++) {
+      final heart = SpriteComponent(
+        sprite: heartSprite,
+        size: Vector2(24, 24),
+        position: Vector2(0 + i * 30, 40),
+      );
+      hearts.add(heart);
+      add(heart);
+    }
   }
-  
+
+  asyncer.Future<void> display(int newScore, int newHp) async {
+    score = newScore;
+    hp = newHp;
+
+    // Update score text
+    scoreText.text = 'Score: $score';
+
+    // Update heart images
+    for (int i = 0; i < hearts.length; i++) {
+      hearts[i].removeFromParent();
+    }
+    hearts.clear();
+
+    final heartSprite = await gameRef.loadSprite('hp heart.png');
+    for (int i = 0; i < hp; i++) {
+      final heart = SpriteComponent(
+        sprite: heartSprite,
+        size: Vector2(24, 24),
+        position: Vector2(0 + i * 30, 40),
+      );
+      hearts.add(heart);
+      add(heart);
+    }
+  }
 }
+
 
 class LoseScreen extends TextComponent with HasGameRef<BowGame> {
 
@@ -269,3 +306,18 @@ class LoseScreen extends TextComponent with HasGameRef<BowGame> {
     anchor = Anchor.center;
   }
 }
+
+// class LevelUpPopup extends PositionComponent with HasGameRef<BowGame>{
+//   @override
+//   Future<void> onLoad() async {
+//     final heartSprite = await gameRef.loadSprite('hp up.png');
+
+//     final heart = SpriteComponent(
+//         sprite: heartSprite,
+//         size: Vector2(24, 24),
+//         position: Vector2( 30, 40),
+//     );
+//     add(heart);
+//     anchor = Anchor.center;
+//   }
+// }

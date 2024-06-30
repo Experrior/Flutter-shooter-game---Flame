@@ -171,7 +171,7 @@ class _HighScoreListPageState extends State<HighScoreListPage> {
                         ),
                         title: Text(
                           'Score: ${highScore.score}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
